@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_uuid_primary_key',
     'auctions',
     'django.contrib.admin',
     'django.contrib.auth',

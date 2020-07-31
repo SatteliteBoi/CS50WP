@@ -1,0 +1,18 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>{{obj.title}}</h2>
+    <div>Going for {{obj.price}}$ </div>
+    {{obj.poster.first_name}}
+    {% if obj.category is not None %}
+        Category is {{obj.category}}
+    {% endif %}
+    {% if obj.imgurl is not None %}
+        <div><img src = "{{obj.imgurl}}"></div>
+    {% endif %}
+    <form action = {% url "bidupdate" %} method = "post">
+        {% csrf_token %}
+        {{form}}
+        <input type = "submit" value = 'Bid'>
+    <form>
+{% endblock %}

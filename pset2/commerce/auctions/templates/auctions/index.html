@@ -2,6 +2,17 @@
 
 {% block body %}
     <h2>Active Listings</h2>
+    {%for obj in lst%}
+        <div><a href = "listing/{{obj.id}}">{{obj.title}}</a> going for {{obj.price}} </div>
+        {% if obj.imgurl is not None %}
+            <div><img src = "{{obj.imgurl}}"></div>
+        {% endif %}
 
-    TODO
+        {% if obj.category is not None %}
+            Category is {{obj.category}}
+        {% endif %}
+
+    {%empty%}
+        No listings rn
+    {%endfor%}
 {% endblock %}
