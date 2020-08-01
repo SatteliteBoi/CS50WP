@@ -1,8 +1,19 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    This item:
     <h2>{{obj.title}}</h2>
-    <div>Going for {{obj.price}}$ </div>
+    <div>Going for {{obj.price}}$
+    <form action = {%url 'watch'%} method = "post">
+        {% csrf_token %}
+        {{watchlistform}}
+        {% if addedtowatch == False %}
+            <input type = "submit" value = "add to watchlist">
+        {% else %}
+            <input type = "submit" value = "remove from watchlist">
+        {% endif %}
+    </form>
+    </div>
     {{obj.poster.first_name}}
     {% if obj.category is not None %}
         Category is {{obj.category}}
@@ -10,9 +21,45 @@
     {% if obj.imgurl is not None %}
         <div><img src = "{{obj.imgurl}}"></div>
     {% endif %}
-    <form action = {% url "bidupdate" %} method = "post">
+    {% if isposter != True %}
+        {% if closed == False %}
+            <form action = {% url "bidupdate" %} method = "post">
+                {% csrf_token %}
+                {{form}}
+                <input type = "submit" value = 'Bid'>
+            </form>
+            <form action = {% url "bidupdate" %} method = "post">
+                {% csrf_token %}
+                {{commentingform}}
+                <input type = "submit" value = 'Bid'>
+            </form>
+        {% else %}
+            {% if winner  %}
+                <h1 style = "text-align: center;"> You Won </h1>
+            {% else %}
+                <h1 style = "text-align: center;"> Closed and you lost</h1>
+            {% endif %}
+        {% endif %}
+    {% elif isposter%}
+        {% if closed %}
+            <h2>You closed this</h2>
+        {% else %}
+        <form action = {% url "bidclose" %} method = "post">
+            {% csrf_token %}
+            {{close}}
+            <input type = "submit" value = 'Close Auction'>
+        </form>           
+        {% endif %}
+    {% else %}
+    {% endif %}
+    <div>
+        <form action = {%url 'createcomment'%} method="post">
         {% csrf_token %}
-        {{form}}
-        <input type = "submit" value = 'Bid'>
-    <form>
+        {{commentingform}}
+        <input type="submit" value="comment">
+        </form>
+        {% for c in oldcomments  %}
+            <div>{{c.commenter}} said {{c.comment}}</div>
+        {% endfor %}
+    </div>
 {% endblock %}

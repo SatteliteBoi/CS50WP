@@ -13,24 +13,27 @@ class Listing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField(max_length=50000)
     category = models.CharField(max_length=50, blank=True, null=True)
+    highestbidder = models.CharField(max_length=80, default=poster)
+    open = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.title}: {self.price} by {self.poster}"
 
 class Bid(models.Model):
-    bidder = models.OneToOneField(User, on_delete=models.CASCADE)
+    bidder = models.ForeignKey(User, on_delete=models.CASCADE)
     bidprice = models.IntegerField()
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.bidder} bidded {self.bidprice}"
 
-class Comments(models.Model):
+class Comment(models.Model):
     commenter = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.CharField(max_length=50000)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.commenter} said {self.listing}"
 
-# class Categories(models.Model):
-#     name=models.CharField(max_length=50, primary_key=True)
-#     def __str__(self):
-#         return f"{self.name}"
+class WatchListItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    listed = models.BooleanField()
+    listingid = models.ForeignKey(Listing, on_delete=models.CASCADE)

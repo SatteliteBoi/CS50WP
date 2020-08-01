@@ -8,7 +8,7 @@
             <div><img src = "{{obj.imgurl}}"></div>
         {% endif %}
 
-        {% if obj.category is not None %}
+        {% if obj.category is not None and obj.category is not "" %}
             Category is {{obj.category}}
         {% endif %}
 
