@@ -4,24 +4,26 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
-from .models import User, Listing, Bid, Comment, WatchListItem
+from .models import User, Listing, Bid, Comment, WatchListItem, Category
 from django.db.models import Q
+from django.db import transaction
 
 class ListingForm(forms.Form):
+    startingprice = forms.IntegerField(label="Starting Price")
     title = forms.CharField(label="Name of Listing")
-    price = forms.IntegerField(label="Starting Price")
     description = forms.CharField(label="Description")
     imgurl = forms.CharField(label="Image URL", required=False)
     category = forms.CharField(label="Category", required=False)
+    bidid = forms.IntegerField(widget=forms.HiddenInput, required=False)
 
 class Bidform(forms.Form):
-    bidprice = forms.IntegerField(label="Starting Price")
+    id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    bidprice = forms.IntegerField(label="Bid price")
     listid = forms.UUIDField(widget=forms.HiddenInput())
 
 class CloseForm(forms.Form):
-    price = forms.IntegerField(widget=forms.HiddenInput())
     listid = forms.UUIDField(widget=forms.HiddenInput())
-    highestbidder = forms.CharField(widget=forms.HiddenInput)
+    bidid = forms.IntegerField(widget=forms.HiddenInput, required=False)
     listid = forms.UUIDField(widget=forms.HiddenInput())
 
 class CommentingForm(forms.Form):
@@ -98,7 +100,12 @@ def createlisting(request):
         f = ListingForm(request.POST)
         if f.is_valid():
             lst = f.cleaned_data
-            listing = Listing(title=lst["title"], price=lst["price"], description=lst["description"], poster=request.user, category=lst["category"], imgurl=lst["imgurl"])
+            catobj = Category.objects.filter(name = lst['category']).first()
+            if catobj==None:
+                catobj=Category(name=lst['category'])
+                catobj.save()
+            bid = Bid.objects.filter(id = lst["bidid"]).first()
+            listing = Listing(title=lst["title"], bid=bid, startingprice=lst["startingprice"], description=lst["description"], poster=request.user, category=catobj, imgurl=lst["imgurl"])
             listing.save()
             return HttpResponseRedirect(reverse('index'))
         else:
@@ -119,16 +126,19 @@ def getlisting(request, inputlistid):
     winner = False
     close = None
     commentingform = CommentingForm(initial={'listid': inputlistid})
-    listobj = Listing.objects.filter(id = inputlistid).first()
+    listobj = Listing.objects.filter(id=inputlistid).first()
     oldcomments = Comment.objects.filter(listing=listobj)
     obj = Listing.objects.filter(Q(id=inputlistid) & Q(open=True)).first()
     if obj is None:
         closed = True
         obj = Listing.objects.filter(id=inputlistid).first()
-        if obj.highestbidder == request.user:
+        if obj.bid is not None and obj.bid.bidder == request.user:
             winner = True
     else:
-        close = CloseForm(initial={'listid': inputlistid, 'price': obj.price, 'highestbidder': str(obj.highestbidder)})
+        bidid = None
+        if(obj.bid != None):
+            bidid = obj.bid.id
+        close = CloseForm(initial={'listid': inputlistid, 'bidid': bidid})
     bform = Bidform(initial={'listid': inputlistid})
     wlf = WatchListForm(initial = {'listid': inputlistid, 'listed': not addedtowatch})
     return render(request, "auctions/listing.html",{
@@ -149,15 +159,20 @@ def bidupdate(request):
         form = Bidform(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            listing = Listing.objects.filter(id= data["listid"]).first()
-            if data["bidprice"] <= listing.price:
+            listing = Listing.objects.filter(id=data["listid"]).first()
+            minprice = listing.startingprice
+            if listing.bid is not None:
+                minprice = listing.bid.bidprice
+
+            if data["bidprice"] <= minprice:
                 return HttpResponse("Error")
             else:
-                listing.highestbidder=str(request.user)
-                listing.price=data['bidprice']
-                listing.save()
-                bid = Bid(bidprice=data["bidprice"], listing=listing, bidder=request.user)
+                bid = Bid(bidprice=data["bidprice"], bidder=request.user)
                 bid.save()
+
+                listing.bid = bid
+                listing.save()
+
                 return HttpResponseRedirect(reverse('index'))
         else:
             return HttpResponse(form.data)            
@@ -215,4 +230,17 @@ def watchlist(request):
     watchlist=WatchListItem.objects.filter(listed=True, user=request.user)
     return render(request, "auctions/watchlist.html", {
         "watchlist": watchlist
+    })
+
+def categories(request):
+    lst = Category.objects.filter(~Q(name = ""))
+    return render(request, "auctions/category.html", {
+        "lst": lst
+    })
+
+def specificcategory(request, ctname):
+    catobj=Category.objects.filter(name = ctname).first()
+    lst = catobj.itemsincategory.filter(open = True)
+    return render(request, "auctions/specificcategory.html", {
+        "lst": lst
     })

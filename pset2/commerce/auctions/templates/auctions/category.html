@@ -1,0 +1,10 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>All Categories</h2>
+    {%for obj in lst%}
+        <a href={% url 'specificcategory' obj.name%}>{{obj.name}}</a>
+    {%empty%}
+        No categories rn
+    {%endfor%}
+{% endblock %}

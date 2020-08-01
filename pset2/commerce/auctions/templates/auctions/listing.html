@@ -3,7 +3,7 @@
 {% block body %}
     This item:
     <h2>{{obj.title}}</h2>
-    <div>Going for {{obj.price}}$
+    <div>Going for {{obj.bid.bidprice}}$
     <form action = {%url 'watch'%} method = "post">
         {% csrf_token %}
         {{watchlistform}}
@@ -16,7 +16,7 @@
     </div>
     {{obj.poster.first_name}}
     {% if obj.category is not None %}
-        Category is {{obj.category}}
+        Category is {{obj.category.name}}
     {% endif %}
     {% if obj.imgurl is not None %}
         <div><img src = "{{obj.imgurl}}"></div>
@@ -26,11 +26,6 @@
             <form action = {% url "bidupdate" %} method = "post">
                 {% csrf_token %}
                 {{form}}
-                <input type = "submit" value = 'Bid'>
-            </form>
-            <form action = {% url "bidupdate" %} method = "post">
-                {% csrf_token %}
-                {{commentingform}}
                 <input type = "submit" value = 'Bid'>
             </form>
         {% else %}

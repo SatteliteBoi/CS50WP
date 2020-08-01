@@ -3,13 +3,13 @@
 {% block body %}
     <h2>Active Listings</h2>
     {%for obj in lst%}
-        <div><a href = "listing/{{obj.id}}">{{obj.title}}</a> going for {{obj.price}} </div>
+        <div><a href = "listing/{{obj.id}}">{{obj.title}}</a> going for {{obj.bid.bidprice}} </div>
         {% if obj.imgurl is not None %}
             <div><img src = "{{obj.imgurl}}"></div>
         {% endif %}
 
         {% if obj.category is not None and obj.category is not "" %}
-            Category is {{obj.category}}
+            Category is {{obj.category.name}}
         {% endif %}
 
     {%empty%}
