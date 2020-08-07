@@ -14,6 +14,7 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('#heading').style.display = 'block';
   console.log("compose email");
   // Clear out composition fields
   document.querySelector('#compose-recipients').disabled=false;
@@ -24,11 +25,19 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
   document.querySelector("#compose-form").onsubmit = sendemail;
   document.querySelector('#sendemailbuttonid').style.display = 'block';
+  if(document.querySelector('#fromsent')!==null){
+    fromsent = document.getElementById("fromsent");
+    fromsent.value=fromsent.defaultValue;
+  }
   if(document.querySelector('#archiveButtonId')!==null){
     document.querySelector('#archiveButtonId').style.display="none";
   }
   if(document.querySelector('#replybuttonid')!==null){
     document.querySelector('#replybuttonid').style.display="none";
+  }
+  document.querySelector('#fromsent').display="block";
+  if(document.querySelector('#viewfrom')!==null){
+    document.querySelector('#viewfrom').display="none";
   }
 }
 
@@ -49,7 +58,7 @@ function sendemail() {
   return false;
 }
 
-function view_email(id){
+function view_email(id, mailbox){
   fetch(`/emails/${Number(id)}`)
   .then(response => response.json())
   .then(email => {
@@ -72,6 +81,8 @@ function view_email(id){
       })
     })
 
+    console.log(`email.archived: ${email.archived}`)
+
     let archiveButtonId =  "archiveButtonId"; 
     button = document.getElementById(archiveButtonId);
     if(button == null)
@@ -80,10 +91,10 @@ function view_email(id){
       button = document.createElement("button");
       button.setAttribute("class", "btn btn-primary");
       button.setAttribute("id", archiveButtonId);
+      button.style.display="none";
       document.querySelector('#compose-view').appendChild(button);
     }
 
-    document.querySelector('#archiveButtonId').style.display="inline-block";
     console.log(`email.archived: ${email.archived}`)
     button.innerHTML= email.archived!==true ? "Archive" : "Unarchive";
     button.onclick = () =>{
@@ -101,17 +112,25 @@ function view_email(id){
       replybutton.innerHTML = "Reply"
       replybutton.setAttribute("class", "btn btn-primary");
       replybutton.setAttribute("id", 'replybuttonid');
+      replybutton.style.display="none";
       document.querySelector('#compose-view').appendChild(replybutton);
     }
-      replybutton.style.display="inline-block";
   
       replybutton.onclick = () =>{
         compose_email();
         document.querySelector('#compose-recipients').value = email.sender;
         document.querySelector('#compose-subject').value = "Re:" + email.subject;
-        document.querySelector('#compose-body').value = "On " + email.timestamp + email.sender + "wrote: " + email.body + "\n";
+        document.querySelector('#compose-body').value = "On " + email.timestamp + " " + email.sender + " wrote: " + email.body + "\n\n";
       }
 
+      if(mailbox!=="sent"){
+        button.style.display="inline-block";
+        replybutton.style.display="inline-block";
+        fromsent = document.getElementById("fromsent");
+        fromsent.value = email.sender;
+        console.log(`sender:${email.sender}`)
+      }
+      document.querySelector('#heading').style.display = 'none';
   });
 }
 function load_mailbox(mailbox) {
@@ -125,7 +144,7 @@ function load_mailbox(mailbox) {
   document.querySelector('#emails-view').innerHTML = `<h3>${mailboxname}</h3>`;
   
   //fetch mailbox
-  fetch(`/emails/${mailboxname.toLowerCase()}`)
+  fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
     // Print emails
@@ -162,13 +181,12 @@ function load_mailbox(mailbox) {
         button.appendChild(div);
         button.class = "email";
         button.onclick = function(){
-          view_email(element.id);
+          view_email(element.id, mailbox);
         }
         if(element.read==true){ 
           button.setAttribute("style", "background: white;")
         }
         document.querySelector('#emails-view').appendChild(button)
       });
-//    document.querySelectorAll('.email').forEach(function(button)
   });
 }

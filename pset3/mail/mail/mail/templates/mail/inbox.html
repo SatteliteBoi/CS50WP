@@ -15,10 +15,11 @@
     </div>
 
     <div id="compose-view">
-        <h3>New Email</h3>
+        <h3 id = "heading">New Email</h3>
         <form id="compose-form">
             <div class="form-group">
-                From: <input disabled class="form-control" value="{{ request.user.email }}">
+                {% comment %} From: <input disabled class="form-control" id = "fromsent" value="{{ request.user.email }}"> {% endcomment %}
+                                From: <input disabled class="form-control" id = "fromsent" value="{{ request.user.email }}">
             </div>
             <div class="form-group">
                 To: <input id="compose-recipients" class="form-control">
