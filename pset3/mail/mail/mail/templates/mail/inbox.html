@@ -27,11 +27,12 @@
                 <input class="form-control" id="compose-subject" placeholder="Subject">
             </div>
             <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
-            <input type="submit" class="btn btn-primary"/>
+            <input type="submit" class="btn btn-primary" id = "sendemailbuttonid"/>
         </form>
     </div>
 {% endblock %}
 
 {% block script %}
-    <script src="{% static 'mail/inbox.js' %}"></script>
+    {% comment %} <script src="{% static 'mail/inbox.js' %}"></script> {% endcomment %}
+    <script>document.write("<script type='text/javascript' src={% static 'mail/inbox.js' %}?v=" + Date.now() + "'><\/script>");</script>
 {% endblock %}

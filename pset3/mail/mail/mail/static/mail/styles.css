@@ -1,3 +1,18 @@
 textarea {
     min-height: 400px;
 }
+.subject{
+    text-align: center;
+}
+.from{
+    text-align: left;
+}
+.timestamp{
+    text-align: right;
+}
+.openemailbutton{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    width: 100%;
+}
